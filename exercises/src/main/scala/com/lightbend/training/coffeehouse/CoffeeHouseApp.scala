@@ -49,8 +49,10 @@ class CoffeeHouseApp(system: ActorSystem) extends Terminal {
     Await.ready(system.whenTerminated, Duration.Inf)
   }
 
-  protected def createCoffeeHouse(): ActorRef =
-    system.deadLetters
+  /** Creates a CoffeeHouse actor */
+  protected def createCoffeeHouse(): ActorRef = {
+    system.actorOf(CoffeeHouse.props, "coffee-house")
+  }
 
   @tailrec
   private def commandLoop(): Unit =
