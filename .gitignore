@@ -32,3 +32,4 @@ build
 
 # project specific
 lightbend.sbt
+exercises/akka-diagnostics
