@@ -38,7 +38,11 @@ class CoffeeHouseApp(system: ActorSystem) extends Terminal {
 
   private val log = Logging(system, getClass.getName)
 
+  // Instantiate a CoffeeHouse actor
   private val coffeeHouse = createCoffeeHouse()
+
+  // Send message to coffeeHouse
+  coffeeHouse ! "Brew Coffee"
 
   def run(): Unit = {
     log.warning(f"{} running%nEnter "
