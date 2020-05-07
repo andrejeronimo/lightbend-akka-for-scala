@@ -4,7 +4,7 @@
 
 package com.lightbend.training.coffeehouse
 
-import akka.testkit.EventFilter
+import akka.testkit.{ EventFilter, TestProbe }
 
 class CoffeeHouseSpec extends BaseAkkaSpec {
 
@@ -17,11 +17,11 @@ class CoffeeHouseSpec extends BaseAkkaSpec {
   }
 
   "Sending a message to CoffeeHouse" should {
-    "result in logging a 'coffee brewing' message at info" in {
+    "result in sending a 'coffee brewing' message as response" in {
+      val sender = TestProbe()
       val coffeeHouse = system.actorOf(CoffeeHouse.props)
-      EventFilter.info(source = coffeeHouse.path.toString, pattern = ".*[Cc]offee.*", occurrences = 1) intercept {
-        coffeeHouse ! "Brew Coffee"
-      }
+      sender.send(coffeeHouse, "Brew Coffee")
+      sender.expectMsgPF() { case message if message.toString matches ".*[Cc]offee.*" =>() }
     }
   }
 }
