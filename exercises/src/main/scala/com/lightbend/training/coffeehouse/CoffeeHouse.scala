@@ -3,7 +3,7 @@ package com.lightbend.training.coffeehouse
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 
 object CoffeeHouse {
-  case object CreateGuest
+  case class CreateGuest(favoriteCoffee: Coffee)
 
   def props(): Props = Props(new CoffeeHouse)
 }
@@ -14,12 +14,20 @@ class CoffeeHouse extends Actor with ActorLogging {
   // Log a message when the CoffeeHouse is instantiated
   log.debug("CoffeeHouse Open")
 
-  protected def createGuest(): ActorRef = {
-    context.actorOf(Guest.props())
+  private val waiter: ActorRef = createWaiter()
+
+  /** Creates a guest */
+  protected def createGuest(favoriteCoffee: Coffee): ActorRef = {
+    context.actorOf(Guest.props(waiter, favoriteCoffee))
+  }
+
+  /** Creates a waiter */
+  protected def createWaiter(): ActorRef = {
+    context.actorOf(Waiter.props(), "waiter")
   }
 
   override def receive: Receive = {
-    case CreateGuest => createGuest()
+    case CreateGuest(favoriteCoffee) => createGuest(favoriteCoffee)
   }
 
 }
