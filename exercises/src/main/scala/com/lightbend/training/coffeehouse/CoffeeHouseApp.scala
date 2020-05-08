@@ -41,15 +41,6 @@ class CoffeeHouseApp(system: ActorSystem) extends Terminal {
   // Instantiate a CoffeeHouse actor
   private val coffeeHouse = createCoffeeHouse()
 
-  // Create an anonymous actor
-  system.actorOf(Props(new Actor {
-    coffeeHouse ! "Brew Coffee"  // Send message to coffeeHouse
-
-    def receive: Receive = {
-      case msg => log.info(msg.toString) // Log any message received by the anonymous actor
-    }
-  }))
-
   def run(): Unit = {
     log.warning(f"{} running%nEnter "
       + Console.BLUE + "commands" + Console.RESET
@@ -80,8 +71,12 @@ class CoffeeHouseApp(system: ActorSystem) extends Terminal {
         commandLoop()
     }
 
-  protected def createGuest(count: Int, coffee: Coffee, caffeineLimit: Int): Unit =
-    ()
+  /** Creates @count number of guests */
+  protected def createGuest(count: Int, coffee: Coffee, caffeineLimit: Int): Unit = {
+    (1 to count).foreach { _ =>
+      coffeeHouse ! CoffeeHouse.CreateGuest
+    }
+  }
 
   protected def status(): Unit =
     ()
