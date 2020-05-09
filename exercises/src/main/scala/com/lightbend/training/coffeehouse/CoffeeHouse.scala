@@ -1,6 +1,10 @@
 package com.lightbend.training.coffeehouse
 
+import java.util.concurrent.TimeUnit
+
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+
+import scala.concurrent.duration._
 
 object CoffeeHouse {
   case class CreateGuest(favoriteCoffee: Coffee)
@@ -14,11 +18,15 @@ class CoffeeHouse extends Actor with ActorLogging {
   // Log a message when the CoffeeHouse is instantiated
   log.debug("CoffeeHouse Open")
 
+  private val finishCoffeeDuration: FiniteDuration =
+    context.system.settings.config.getDuration("coffee-house.guest.finish-coffee-duration", TimeUnit.MILLISECONDS).millis
+
+  // CoffeeHouse waiter
   private val waiter: ActorRef = createWaiter()
 
   /** Creates a guest */
   protected def createGuest(favoriteCoffee: Coffee): ActorRef = {
-    context.actorOf(Guest.props(waiter, favoriteCoffee))
+    context.actorOf(Guest.props(waiter, favoriteCoffee, finishCoffeeDuration))
   }
 
   /** Creates a waiter */
