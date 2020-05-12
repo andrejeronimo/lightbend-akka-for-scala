@@ -18,10 +18,11 @@ class CoffeeHouse extends Actor with ActorLogging {
   // Log a message when the CoffeeHouse is instantiated
   log.debug("CoffeeHouse Open")
 
-  private val finishCoffeeDuration: FiniteDuration =
-    context.system.settings.config.getDuration("coffee-house.guest.finish-coffee-duration", TimeUnit.MILLISECONDS).millis
+  private val finishCoffeeDuration: FiniteDuration = context.system.settings.config.getDuration("coffee-house.guest.finish-coffee-duration", TimeUnit.MILLISECONDS).millis
+  private val prepareCoffeeDuration: FiniteDuration = context.system.settings.config.getDuration("coffee-house.barista.prepare-coffee-duration", TimeUnit.MILLISECONDS).millis
 
-  // CoffeeHouse waiter
+  // CoffeeHouse barista and waiter
+  private val barista: ActorRef = createBarista()
   private val waiter: ActorRef = createWaiter()
 
   /** Creates a guest */
@@ -31,7 +32,12 @@ class CoffeeHouse extends Actor with ActorLogging {
 
   /** Creates a waiter */
   protected def createWaiter(): ActorRef = {
-    context.actorOf(Waiter.props(), "waiter")
+    context.actorOf(Waiter.props(barista), "waiter")
+  }
+
+  /** Creates a barista */
+  protected def createBarista(): ActorRef = {
+    context.actorOf(Barista.props(prepareCoffeeDuration), "barista")
   }
 
   override def receive: Receive = {
