@@ -24,6 +24,11 @@ class Guest(waiter: ActorRef,
   // When a guest gets created, start the flow by ordering a coffee
   orderCoffee()
 
+  override def postStop(): Unit = {
+    log.info("Goodbye")
+    super.postStop()
+  }
+
   def receive: Receive = {
     case Waiter.CoffeeServed(coffee) =>
       coffeeCount += 1
