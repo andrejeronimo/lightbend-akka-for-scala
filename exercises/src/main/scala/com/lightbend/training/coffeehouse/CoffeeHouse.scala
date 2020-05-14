@@ -7,7 +7,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import scala.concurrent.duration._
 
 object CoffeeHouse {
-  case class CreateGuest(favoriteCoffee: Coffee)
+  case class CreateGuest(favoriteCoffee: Coffee, caffeineLimit: Int)
   case class ApproveCoffee(coffee: Coffee, guest: ActorRef)
 
   def props(caffeineLimit: Int): Props = {
@@ -31,8 +31,8 @@ class CoffeeHouse(caffeineLimit: Int) extends Actor with ActorLogging {
   private val waiter: ActorRef = createWaiter()
 
   /** Creates a guest */
-  protected def createGuest(favoriteCoffee: Coffee): ActorRef = {
-    val guest = context.actorOf(Guest.props(waiter, favoriteCoffee, finishCoffeeDuration))
+  protected def createGuest(favoriteCoffee: Coffee, guestCaffeineLimit: Int): ActorRef = {
+    val guest = context.actorOf(Guest.props(waiter, favoriteCoffee, finishCoffeeDuration, guestCaffeineLimit))
     context.watch(guest)  // Monitor each guest by using dead watch
     guest
   }
@@ -48,8 +48,8 @@ class CoffeeHouse(caffeineLimit: Int) extends Actor with ActorLogging {
   }
 
   override def receive: Receive = {
-    case CreateGuest(favoriteCoffee) =>
-      val guest = createGuest(favoriteCoffee)
+    case CreateGuest(favoriteCoffee, guestCaffeineLimit) =>
+      val guest = createGuest(favoriteCoffee, guestCaffeineLimit)
       guestBook += (guest -> 0)
       log.info(s"Guest $guest added to guest book")
     case ApproveCoffee(coffee, guest) if guestBook(guest) < caffeineLimit =>

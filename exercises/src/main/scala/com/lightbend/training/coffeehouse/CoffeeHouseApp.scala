@@ -4,7 +4,7 @@
 
 package com.lightbend.training.coffeehouse
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 
 import scala.annotation.tailrec
@@ -76,7 +76,7 @@ class CoffeeHouseApp(system: ActorSystem) extends Terminal {
   /** Creates @count number of guests */
   protected def createGuest(count: Int, coffee: Coffee, caffeineLimit: Int): Unit = {
     (1 to count).foreach { _ =>
-      coffeeHouse ! CoffeeHouse.CreateGuest(coffee)
+      coffeeHouse ! CoffeeHouse.CreateGuest(coffee, caffeineLimit)
     }
   }
 
