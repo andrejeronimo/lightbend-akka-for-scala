@@ -27,6 +27,12 @@ class CoffeeHouse(caffeineLimit: Int) extends Actor with ActorLogging {
   override def supervisorStrategy: SupervisorStrategy = {
     val decider: SupervisorStrategy.Decider = {
       case Guest.CaffeineException => SupervisorStrategy.Stop
+      case Waiter.FrustratedException(coffee, guest) =>
+        // Guarantee that the coffee that generated the frustration is not loss.
+        // We need to use a forward in order to have the Barista responding to the Waiter. If a tell was used the
+        // Barista would respond to the the CoffeeHouse.
+        barista.forward(Barista.PrepareCoffee(coffee, guest))
+        SupervisorStrategy.Restart
     }
 
     OneForOneStrategy()(decider.orElse(super.supervisorStrategy.decider))

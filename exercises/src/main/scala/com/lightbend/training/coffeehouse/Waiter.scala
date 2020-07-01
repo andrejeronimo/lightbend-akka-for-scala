@@ -7,7 +7,7 @@ object Waiter {
   case class CoffeeServed(coffee: Coffee)
   case class Complaint(coffee: Coffee)
 
-  case object FrustratedException extends IllegalStateException("Too many complaints.")
+  case class FrustratedException(coffee: Coffee, guest: ActorRef) extends IllegalStateException("Too many complaints.")
 
   def props(coffeeHouse: ActorRef, barista: ActorRef, maxComplaintCount: Int): Props = {
     Props(new Waiter(coffeeHouse, barista, maxComplaintCount))
@@ -25,7 +25,7 @@ class Waiter(coffeeHouse: ActorRef, barista: ActorRef, maxComplaintCount: Int) e
     case Barista.CoffeePrepared(coffee, guest) =>
       guest ! CoffeeServed(coffee)
     case Complaint(coffee) if complaintCount >= maxComplaintCount =>
-      throw FrustratedException
+      throw FrustratedException(coffee, sender())
     case Complaint(coffee) =>
       complaintCount += 1
       barista ! Barista.PrepareCoffee(coffee, sender())
