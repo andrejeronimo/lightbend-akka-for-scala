@@ -34,12 +34,15 @@ class Guest(waiter: ActorRef,
   }
 
   def receive: Receive = {
-    case Waiter.CoffeeServed(coffee) =>
+    case Waiter.CoffeeServed(`favoriteCoffee`) =>
       coffeeCount += 1
-      log.info(s"Enjoying my $coffeeCount yummy $coffee")
+      log.info(s"Enjoying my $coffeeCount yummy $favoriteCoffee")
 
       // Send a `CoffeeFinished` message to self when the guest finishes drinking his coffee
       timers.startSingleTimer("coffee-finished", CoffeeFinished, finishCoffeeDuration)
+    case Waiter.CoffeeServed(otherCoffee) =>
+      log.info(s"Expected a $favoriteCoffee, but got a $otherCoffee!")
+      waiter ! Waiter.Complaint(favoriteCoffee)
     case CoffeeFinished if coffeeCount > caffeineLimit =>
       throw CaffeineException
     case CoffeeFinished =>

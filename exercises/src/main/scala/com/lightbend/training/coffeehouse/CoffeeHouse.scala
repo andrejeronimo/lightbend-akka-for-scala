@@ -32,8 +32,11 @@ class CoffeeHouse(caffeineLimit: Int) extends Actor with ActorLogging {
     OneForOneStrategy()(decider.orElse(super.supervisorStrategy.decider))
   }
 
-  private val finishCoffeeDuration: FiniteDuration = context.system.settings.config.getDuration("coffee-house.guest.finish-coffee-duration", TimeUnit.MILLISECONDS).millis
-  private val prepareCoffeeDuration: FiniteDuration = context.system.settings.config.getDuration("coffee-house.barista.prepare-coffee-duration", TimeUnit.MILLISECONDS).millis
+  private val config = context.system.settings.config
+  private val finishCoffeeDuration: FiniteDuration = config.getDuration("coffee-house.guest.finish-coffee-duration", TimeUnit.MILLISECONDS).millis
+  private val prepareCoffeeDuration: FiniteDuration = config.getDuration("coffee-house.barista.prepare-coffee-duration", TimeUnit.MILLISECONDS).millis
+  private val baristaAccuracy: Int = config.getInt("coffee-house.barista.accuracy")
+  private val waiterMaxComplaintCount: Int = config.getInt("coffee-house.waiter.max-complaint-count")
 
   private var guestBook: Map[ActorRef, Int] = Map.empty.withDefaultValue(0)
 
@@ -50,12 +53,12 @@ class CoffeeHouse(caffeineLimit: Int) extends Actor with ActorLogging {
 
   /** Creates a waiter */
   protected def createWaiter(): ActorRef = {
-    context.actorOf(Waiter.props(self), "waiter")
+    context.actorOf(Waiter.props(self, barista, waiterMaxComplaintCount), "waiter")
   }
 
   /** Creates a barista */
   protected def createBarista(): ActorRef = {
-    context.actorOf(Barista.props(prepareCoffeeDuration), "barista")
+    context.actorOf(Barista.props(prepareCoffeeDuration, baristaAccuracy), "barista")
   }
 
   override def receive: Receive = {
