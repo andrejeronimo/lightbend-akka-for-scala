@@ -2,7 +2,7 @@ package com.lightbend.training.coffeehouse
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
+import akka.actor.{Actor, ActorLogging, ActorRef, OneForOneStrategy, Props, SupervisorStrategy, Terminated}
 
 import scala.concurrent.duration._
 
@@ -20,6 +20,17 @@ class CoffeeHouse(caffeineLimit: Int) extends Actor with ActorLogging {
 
   // Log a message when the CoffeeHouse is instantiated
   log.debug("CoffeeHouse Open")
+
+  /** Defines the supervisor strategy
+   *  If a Guest throws CaffeineException then the Guest will be stopped
+   *  Otherwise the default supervisor strategy decider is used */
+  override def supervisorStrategy: SupervisorStrategy = {
+    val decider: SupervisorStrategy.Decider = {
+      case Guest.CaffeineException => SupervisorStrategy.Stop
+    }
+
+    OneForOneStrategy()(decider.orElse(super.supervisorStrategy.decider))
+  }
 
   private val finishCoffeeDuration: FiniteDuration = context.system.settings.config.getDuration("coffee-house.guest.finish-coffee-duration", TimeUnit.MILLISECONDS).millis
   private val prepareCoffeeDuration: FiniteDuration = context.system.settings.config.getDuration("coffee-house.barista.prepare-coffee-duration", TimeUnit.MILLISECONDS).millis
