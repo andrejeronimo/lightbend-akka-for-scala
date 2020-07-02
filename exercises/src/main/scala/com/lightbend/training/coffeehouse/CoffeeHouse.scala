@@ -3,6 +3,7 @@ package com.lightbend.training.coffeehouse
 import java.util.concurrent.TimeUnit
 
 import akka.actor.{Actor, ActorLogging, ActorRef, OneForOneStrategy, Props, SupervisorStrategy, Terminated}
+import akka.routing.FromConfig
 
 import scala.concurrent.duration._
 
@@ -64,7 +65,8 @@ class CoffeeHouse(caffeineLimit: Int) extends Actor with ActorLogging {
 
   /** Creates a barista */
   protected def createBarista(): ActorRef = {
-    context.actorOf(Barista.props(prepareCoffeeDuration, baristaAccuracy), "barista")
+    // Note that FromConfig is used to defines that the router settings are defined in a config file
+    context.actorOf(FromConfig.props(Barista.props(prepareCoffeeDuration, baristaAccuracy)), "barista")
   }
 
   override def receive: Receive = {
